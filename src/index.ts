@@ -1,12 +1,19 @@
-import express from 'express';
+import cors from 'cors';
+import { config } from 'dotenv';
+import express, { Request, Response } from 'express';
+
+config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+app.use(express.json());
+app.use(cors());
+
+app.get('*', (_: Request, res: Response) => {
+  res.status(404).send('Not found');
 });
 
 app.listen(port, () => {
-  return console.log(`Express is listening at http://localhost:${port}`);
+  console.log(`[server] The port is listening on ${port}`);
 });
