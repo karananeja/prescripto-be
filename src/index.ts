@@ -5,6 +5,8 @@ import express, { Request, Response } from 'express';
 
 import { connectCloudinary } from './config/cloudinary';
 import { connectDB } from './config/mongodb';
+import { errorHandler } from './middlewares/errorMiddleware';
+import { adminRouter } from './routes/adminRoute';
 
 config();
 
@@ -15,6 +17,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// API endpoints
+app.use('/api/v1/admin', adminRouter);
+
 // Setting up the port and database connection url
 const port = process.env.PORT || 3000;
 const mongoDbURI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.zvcge.mongodb.net/${process.env.DB_NAME}`;
@@ -23,6 +28,9 @@ const mongoDbURI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PA
 app.get('*', (_: Request, res: Response) => {
   res.status(404).send('Not found');
 });
+
+// Global Error catch handler
+app.use(errorHandler);
 
 // Server started on the required port
 app.listen(port, () => {
