@@ -3,6 +3,7 @@ import cors from 'cors';
 import { config } from 'dotenv';
 import express, { Request, Response } from 'express';
 
+import { connectCloudinary } from './config/cloudinary';
 import { connectDB } from './config/mongodb';
 
 config();
@@ -28,4 +29,6 @@ app.listen(port, () => {
   console.log(`\x1b[32m[server] The port is listening on ${port}\x1b[0m`);
   // Connecting to the database
   connectDB(mongoDbURI);
+  // Connecting to the cloudinary
+  connectCloudinary();
 });
