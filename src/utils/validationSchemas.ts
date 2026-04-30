@@ -23,3 +23,13 @@ export const doctorSchema = z.object({
   date: z.number().min(0, { message: 'Date is required' }),
   slotsBooked: z.record(z.unknown()).default({}),
 });
+
+export const adminSchema = z.object({
+  email: z
+    .string()
+    .email({ message: 'Invalid email address' })
+    .min(1, { message: 'Email is required' }),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters' }),
+});

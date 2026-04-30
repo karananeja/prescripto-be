@@ -1,10 +1,11 @@
 import bcrypt from 'bcrypt';
 import { v2 as cloudinary } from 'cloudinary';
 import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
 import { doctorModel } from '../models/doctorModel';
-import { doctorSchema } from '../utils/validationSchemas';
+import { adminSchema, doctorSchema } from '../utils/validationSchemas';
 
 export const addDoctor = async (
   req: Request,
@@ -13,7 +14,29 @@ export const addDoctor = async (
 ) => {
   try {
     // Validate the doctor info
-    doctorSchema.parse(req.body);
+    const parsedSchema = doctorSchema
+      .pick({
+        name: true,
+        email: true,
+        password: true,
+        specialty: true,
+        degree: true,
+        experience: true,
+        about: true,
+        fee: true,
+        address: true,
+      })
+      .partial()
+      .extend({
+        address: z.preprocess((val) => {
+          if (typeof val === 'string') return JSON.parse(val);
+          return val;
+        }, doctorSchema.shape.address),
+
+        fee: z.preprocess((val) => Number(val), z.number()),
+      });
+
+    parsedSchema.parse(req.body);
     const imageFile = req.file;
 
     if (!imageFile) {
@@ -40,13 +63,33 @@ export const addDoctor = async (
     };
 
     const newDoctor = new doctorModel(doctorData);
-    newDoctor.save();
+    await newDoctor.save();
 
     res.status(200).json({ success: true, message: 'Doctor Added' });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ success: false, message: 'Missing details' });
+    next(error);
+  }
+};
+
+export const loginAdmin = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email, password } = req.body;
+    // Validate the admin info
+    adminSchema.parse({ email, password });
+
+    if (
+      email !== process.env.ADMIN_EMAIL ||
+      password !== process.env.ADMIN_PASSWORD
+    ) {
+      res.status(400).json({ success: false, message: 'Invalid Credentials' });
+      return;
     }
+
+    const token = jwt.sign({ email }, process.env.JWT_SECRET!, {
+      expiresIn: 30 * 24 * 60 * 60 * 1000,
+    });
+    res.status(200).json({ success: true, message: 'Login Successful', token });
+  } catch (error) {
     next(error);
   }
 };
