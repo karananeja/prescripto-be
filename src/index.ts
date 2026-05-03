@@ -7,6 +7,8 @@ import { connectCloudinary } from './config/cloudinary';
 import { connectDB } from './config/mongodb';
 import { errorHandler } from './middlewares/errorMiddleware';
 import { adminRouter } from './routes/adminRoute';
+import { doctorRouter } from './routes/doctorRoute';
+import { userRouter } from './routes/userRoute';
 
 config();
 
@@ -19,6 +21,8 @@ app.use(cors());
 
 // API endpoints
 app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/doctor', doctorRouter);
+app.use('/api/v1/user', userRouter);
 
 // Setting up the port and database connection url
 const port = process.env.PORT || 3000;

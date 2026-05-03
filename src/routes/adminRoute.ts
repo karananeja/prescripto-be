@@ -1,6 +1,11 @@
 import { Router } from 'express';
 
-import { addDoctor, loginAdmin } from '../controller/adminController';
+import {
+  addDoctor,
+  getAllDoctors,
+  loginAdmin,
+} from '../controller/adminController';
+import { changeAvailability } from '../controller/doctorController';
 import { verifyAdminAccessToken } from '../middlewares/authAdmin';
 import { upload } from '../middlewares/multer';
 
@@ -14,3 +19,11 @@ adminRouter.post(
 );
 
 adminRouter.post('/login', loginAdmin);
+
+adminRouter.get('/get-all-doctors', verifyAdminAccessToken, getAllDoctors);
+
+adminRouter.post(
+  '/change-availability',
+  verifyAdminAccessToken,
+  changeAvailability
+);

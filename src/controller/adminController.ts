@@ -44,6 +44,14 @@ export const addDoctor = async (
       return;
     }
 
+    const existingDoctor = await doctorModel.findOne({ email: req.body.email });
+    if (existingDoctor) {
+      res
+        .status(400)
+        .json({ success: false, message: 'Doctor already exists' });
+      return;
+    }
+
     // Hashing the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
@@ -89,6 +97,24 @@ export const loginAdmin = (req: Request, res: Response, next: NextFunction) => {
       expiresIn: 30 * 24 * 60 * 60 * 1000,
     });
     res.status(200).json({ success: true, message: 'Login Successful', token });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllDoctors = async (
+  _: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const doctors = await doctorModel.find().select('-password');
+
+    res.status(200).json({
+      success: true,
+      message: 'Doctors fetched successfully',
+      doctors,
+    });
   } catch (error) {
     next(error);
   }

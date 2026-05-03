@@ -33,3 +33,22 @@ export const adminSchema = z.object({
     .string()
     .min(6, { message: 'Password must be at least 6 characters' }),
 });
+
+export const userSchema = z.object({
+  name: z.string().min(1, { message: 'Name is required' }),
+  email: z
+    .string()
+    .email({ message: 'Invalid email address' })
+    .min(1, { message: 'Email is required' }),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters' }),
+  phone: z.string().min(1, { message: 'Phone is required' }),
+  address: z.object({
+    line1: z.string().min(1, { message: 'Line1 is required' }),
+    line2: z.string().min(1, { message: 'Line2 is required' }),
+  }),
+  gender: z.string().min(1, { message: 'Gender is required' }),
+  dob: z.string().min(1, { message: 'DOB is required' }),
+  image: z.string().min(1, { message: 'Image URL is required' }),
+});
