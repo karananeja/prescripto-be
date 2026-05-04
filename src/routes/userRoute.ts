@@ -19,7 +19,7 @@ userRouter.get('/get-user-info', verifyUserAccessToken, getUserInfo);
 
 userRouter.put(
   '/update-user-info',
-  verifyUserAccessToken,
   upload.single('image'),
+  verifyUserAccessToken,
   updateUserInfo
 );

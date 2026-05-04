@@ -9,7 +9,7 @@ const userSchema = new Schema({
   image: { type: String, default: defaultImageInBase64 },
   address: { type: Object, default: { line1: '', line2: '' } },
   gender: { type: String, default: 'Not Selected' },
-  dob: { type: String, default: 'Not Selected' },
+  dob: { type: String, default: '1970-01-01' },
   phone: { type: String, default: '0000000000' },
 });
 

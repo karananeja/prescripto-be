@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { v2 as cloudinary } from 'cloudinary';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
 import { userModel } from '../models/userModel';
 import { userSchema } from '../utils/validationSchemas';
@@ -112,8 +113,8 @@ export const updateUserInfo = async (
   next: NextFunction
 ) => {
   try {
-    // Validate only allowed fields
-    const validatedData = userSchema
+    // Validate the user info
+    const parsedSchema = userSchema
       .pick({
         name: true,
         phone: true,
@@ -123,7 +124,14 @@ export const updateUserInfo = async (
         image: true,
       })
       .partial()
-      .parse(req.body);
+      .extend({
+        address: z.preprocess((val) => {
+          if (typeof val === 'string') return JSON.parse(val);
+          return val;
+        }, userSchema.shape.address),
+      });
+
+    const validatedData = parsedSchema.parse(req.body);
 
     const user = await userModel.findById(req.body.userId);
 
@@ -132,22 +140,7 @@ export const updateUserInfo = async (
       return;
     }
 
-    // Handle address safely
-    if (validatedData.address) {
-      try {
-        validatedData.address =
-          typeof validatedData.address === 'string'
-            ? JSON.parse(validatedData.address)
-            : validatedData.address;
-      } catch {
-        res
-          .status(400)
-          .json({ success: false, message: 'Invalid address format' });
-        return;
-      }
-    }
-
-    // Handle optional image upload
+    // Upload the image to cloudinary
     if (req.file) {
       const uploadImage = await cloudinary.uploader.upload(req.file.path, {
         resource_type: 'image',
