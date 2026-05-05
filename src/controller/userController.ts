@@ -4,8 +4,10 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
+import { appointmentModel } from '../models/appointmentModel';
+import { doctorModel } from '../models/doctorModel';
 import { userModel } from '../models/userModel';
-import { userSchema } from '../utils/validationSchemas';
+import { appointmentSchema, userSchema } from '../utils/validationSchemas';
 
 export const registerUser = async (
   req: Request,
@@ -138,7 +140,7 @@ export const updateUserInfo = async (
 
     const validatedData = parsedSchema.parse(req.body);
 
-    const user = await userModel.findById(req.body.userId);
+    const user = await userModel.findById(req.body.userId).select('-password');
 
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
@@ -162,6 +164,70 @@ export const updateUserInfo = async (
     res
       .status(200)
       .json({ success: true, message: 'User info updated successfully', user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const bookAppointment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    appointmentSchema.parse(req.body);
+
+    const { userId, docId, slotDate, slotTime } = req.body;
+
+    const user = await userModel.findById(userId).select('-password');
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const docData = await doctorModel.findById(docId).select('-password');
+    if (!docData) {
+      res.status(404).json({ success: false, message: 'Doctor not found' });
+      return;
+    }
+
+    if (!docData.available) {
+      res
+        .status(400)
+        .json({ success: false, message: 'Doctor is not available' });
+      return;
+    }
+
+    const updateResult = await doctorModel.updateOne(
+      { _id: docId, [`slotsBooked.${slotDate}`]: { $ne: slotTime } },
+      { $push: { [`slotsBooked.${slotDate}`]: slotTime } }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      res.status(400).json({ success: false, message: 'Slot already booked' });
+      return;
+    }
+
+    const appointmentData = {
+      userId: user._id,
+      docId: docData._id,
+      slotDate,
+      slotTime,
+      userData: { name: user.name, email: user.email, phone: user.phone },
+      docData: {
+        name: docData.name,
+        specialty: docData.specialty,
+        fee: docData.fee,
+      },
+      amount: docData.fee,
+      date: Date.now(),
+    };
+
+    await appointmentModel.create(appointmentData);
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Appointment booked successfully' });
   } catch (error) {
     next(error);
   }

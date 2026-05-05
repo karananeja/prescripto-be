@@ -52,3 +52,10 @@ export const userSchema = z.object({
   dob: z.string().min(1, { message: 'DOB is required' }),
   image: z.string().min(1, { message: 'Image URL is required' }),
 });
+
+export const appointmentSchema = z.object({
+  userId: z.string().min(1, { message: 'User ID is required' }),
+  docId: z.string().min(1, { message: 'Doctor ID is required' }),
+  slotDate: z.string().min(1, { message: 'Slot date is required' }),
+  slotTime: z.string().min(1, { message: 'Slot time is required' }),
+});

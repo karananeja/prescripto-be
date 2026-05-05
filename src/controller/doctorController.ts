@@ -10,7 +10,7 @@ export const changeAvailability = async (
   try {
     const { doctorId } = req.body;
 
-    const docData = await doctorModel.findById(doctorId);
+    const docData = await doctorModel.findById(doctorId).select('-password');
 
     if (!docData) {
       res.status(404).json({ success: false, message: 'Doctor not found' });
