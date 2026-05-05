@@ -10,7 +10,9 @@ export const changeAvailability = async (
   try {
     const { doctorId } = req.body;
 
-    const docData = await doctorModel.findById(doctorId).select('-password');
+    const docData = await doctorModel
+      .findById(doctorId)
+      .select(['-password', '-__v']);
 
     if (!docData) {
       res.status(404).json({ success: false, message: 'Doctor not found' });
@@ -32,7 +34,9 @@ export const getAllDoctors = async (
   next: NextFunction
 ) => {
   try {
-    const doctors = await doctorModel.find().select(['-password', '-email']);
+    const doctors = await doctorModel
+      .find()
+      .select(['-password', '-__v', '-email']);
 
     res.status(200).json({
       success: true,

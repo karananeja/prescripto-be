@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import {
   bookAppointment,
+  getAllAppointments,
   getUserInfo,
   loginUser,
   registerUser,
@@ -26,3 +27,9 @@ userRouter.put(
 );
 
 userRouter.post('/book-appointment', verifyUserAccessToken, bookAppointment);
+
+userRouter.get(
+  '/get-my-appointments',
+  verifyUserAccessToken,
+  getAllAppointments
+);

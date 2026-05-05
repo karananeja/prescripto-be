@@ -100,7 +100,9 @@ export const getUserInfo = async (
       return;
     }
 
-    const user = await userModel.findById(req.body.userId).select('-password');
+    const user = await userModel
+      .findById(req.body.userId)
+      .select(['-password', '-__v']);
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
@@ -140,7 +142,9 @@ export const updateUserInfo = async (
 
     const validatedData = parsedSchema.parse(req.body);
 
-    const user = await userModel.findById(req.body.userId).select('-password');
+    const user = await userModel
+      .findById(req.body.userId)
+      .select(['-password', '-__v']);
 
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
@@ -179,13 +183,15 @@ export const bookAppointment = async (
 
     const { userId, docId, slotDate, slotTime } = req.body;
 
-    const user = await userModel.findById(userId).select('-password');
+    const user = await userModel.findById(userId).select(['-password', '-__v']);
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
 
-    const docData = await doctorModel.findById(docId).select('-password');
+    const docData = await doctorModel
+      .findById(docId)
+      .select(['-password', '-__v']);
     if (!docData) {
       res.status(404).json({ success: false, message: 'Doctor not found' });
       return;
@@ -218,6 +224,8 @@ export const bookAppointment = async (
         name: docData.name,
         specialty: docData.specialty,
         fee: docData.fee,
+        image: docData.image,
+        address: docData.address,
       },
       amount: docData.fee,
       date: Date.now(),
@@ -228,6 +236,30 @@ export const bookAppointment = async (
     res
       .status(200)
       .json({ success: true, message: 'Appointment booked successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllAppointments = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.body;
+
+    const user = await userModel.findById(userId).select(['-password', '-__v']);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const appointments = await appointmentModel
+      .find({ userId })
+      .select(['-__v'])
+      .sort({ date: -1 });
+    res.status(200).json({ success: true, appointments });
   } catch (error) {
     next(error);
   }
