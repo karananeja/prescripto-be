@@ -59,7 +59,7 @@ export const loginUser = async (
 
     const userData = await userModel.findOne({ email: req.body.email });
     if (!userData) {
-      res.status(400).json({ success: false, message: 'User not found' });
+      res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
 
@@ -99,6 +99,11 @@ export const getUserInfo = async (
     }
 
     const user = await userModel.findById(req.body.userId).select('-password');
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
     res
       .status(200)
       .json({ success: true, message: 'User info fetched successfully', user });

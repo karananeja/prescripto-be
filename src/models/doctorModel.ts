@@ -3,7 +3,13 @@ import { model, models, Schema } from 'mongoose';
 const doctorSchema = new Schema(
   {
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     password: { type: String, required: true },
     image: { type: String, required: true },
     specialty: { type: String, required: true },
@@ -16,7 +22,7 @@ const doctorSchema = new Schema(
     date: { type: Number, required: true },
     slotsBooked: { type: Object, default: {} },
   },
-  { minimize: false }
+  { minimize: false, timestamps: true }
 );
 
 export const doctorModel = models.doctor || model('doctor', doctorSchema);

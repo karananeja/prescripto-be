@@ -31,5 +31,6 @@ export const verifyAdminAccessToken = (
     next();
   } catch {
     res.status(401).json({ success: false, message: 'Invalid token' });
+    return;
   }
 };
