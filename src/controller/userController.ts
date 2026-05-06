@@ -241,7 +241,7 @@ export const bookAppointment = async (
   }
 };
 
-export const getAllAppointments = async (
+export const getAppointments = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -259,7 +259,66 @@ export const getAllAppointments = async (
       .find({ userId })
       .select(['-__v'])
       .sort({ date: -1 });
-    res.status(200).json({ success: true, appointments });
+
+    res.status(200).json({
+      success: true,
+      message: 'Appointments fetched successfully',
+      appointments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const cancelAppointment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { appointmentId, userId } = req.body;
+
+    const user = await userModel.findById(userId).select(['-password', '-__v']);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const appointment = await appointmentModel.findById(appointmentId);
+    if (!appointment) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointment not found' });
+      return;
+    }
+
+    if (appointment.userId.toString() !== userId) {
+      res.status(403).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    if (appointment.cancelled) {
+      res
+        .status(400)
+        .json({ success: false, message: 'Appointment already cancelled' });
+      return;
+    }
+
+    appointment.cancelled = true;
+    await appointment.save();
+
+    await doctorModel.updateOne(
+      { _id: appointment.docId },
+      {
+        $pull: {
+          [`slotsBooked.${appointment.slotDate}`]: appointment.slotTime,
+        },
+      }
+    );
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Appointment cancelled successfully' });
   } catch (error) {
     next(error);
   }
