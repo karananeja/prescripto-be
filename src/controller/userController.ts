@@ -220,7 +220,13 @@ export const bookAppointment = async (
       docId: docData._id,
       slotDate,
       slotTime,
-      userData: { name: user.name, email: user.email, phone: user.phone },
+      userData: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        dob: user.dob,
+        image: user.image,
+      },
       docData: {
         name: docData.name,
         specialty: docData.specialty,

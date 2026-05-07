@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
+import { appointmentModel } from '../models/appointmentModel';
 import { doctorModel } from '../models/doctorModel';
 import { adminSchema, doctorSchema } from '../utils/validationSchemas';
 
@@ -115,6 +116,51 @@ export const getAllDoctors = async (
       message: 'Doctors fetched successfully',
       doctors,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAppointments = async (
+  _: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const appointments = await appointmentModel.find().select('-__v');
+
+    res.status(200).json({
+      success: true,
+      message: 'Appointments fetched successfully',
+      appointments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const cancelAppointment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const appointment = await appointmentModel
+      .findById(req.body.appointmentId)
+      .select(['-__v']);
+    if (!appointment) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointment not found' });
+      return;
+    }
+
+    appointment.cancelled = true;
+    await appointment.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Appointment cancelled successfully' });
   } catch (error) {
     next(error);
   }

@@ -2,7 +2,9 @@ import { Router } from 'express';
 
 import {
   addDoctor,
+  cancelAppointment,
   getAllDoctors,
+  getAppointments,
   loginAdmin,
 } from '../controller/adminController';
 import { changeAvailability } from '../controller/doctorController';
@@ -26,4 +28,12 @@ adminRouter.post(
   '/change-availability',
   verifyAdminAccessToken,
   changeAvailability
+);
+
+adminRouter.get('/get-appointments', verifyAdminAccessToken, getAppointments);
+
+adminRouter.post(
+  '/cancel-appointment',
+  verifyAdminAccessToken,
+  cancelAppointment
 );
