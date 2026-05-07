@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { appointmentModel } from '../models/appointmentModel';
 import { doctorModel } from '../models/doctorModel';
 import { userModel } from '../models/userModel';
+import { razorpayInstance } from '../utils/helpers';
 import { appointmentSchema, userSchema } from '../utils/validationSchemas';
 
 export const registerUser = async (
@@ -284,7 +285,9 @@ export const cancelAppointment = async (
       return;
     }
 
-    const appointment = await appointmentModel.findById(appointmentId);
+    const appointment = await appointmentModel
+      .findById(appointmentId)
+      .select(['-__v']);
     if (!appointment) {
       res
         .status(404)
@@ -319,6 +322,119 @@ export const cancelAppointment = async (
     res
       .status(200)
       .json({ success: true, message: 'Appointment cancelled successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const makePayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { appointmentId, userId } = req.body;
+
+    const user = await userModel.findById(userId).select(['-password', '-__v']);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const appointment = await appointmentModel
+      .findById(appointmentId)
+      .select(['-__v']);
+    if (!appointment) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointment not found' });
+      return;
+    }
+
+    if (appointment.userId.toString() !== userId) {
+      res.status(403).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    if (appointment.cancelled) {
+      res
+        .status(400)
+        .json({ success: false, message: 'Appointment already cancelled' });
+      return;
+    }
+
+    const options = {
+      amount: appointment.amount * 100,
+      currency: process.env.CURRENCY!,
+      receipt: appointmentId,
+      notes: { appointmentId: appointmentId, userId: userId },
+    };
+
+    const order = await razorpayInstance.orders.create(options);
+
+    res.status(200).json({
+      success: true,
+      order,
+      message: 'Payment order created successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyPayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { razorpay_order_id, userId } = req.body;
+
+    const user = await userModel.findById(userId).select(['-password', '-__v']);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+    if (!orderInfo) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    if (orderInfo.status !== 'paid') {
+      res
+        .status(400)
+        .json({ success: false, message: 'Payment not successful' });
+      return;
+    }
+
+    const appointment = await appointmentModel
+      .findById(orderInfo.receipt)
+      .select(['-__v']);
+    if (!appointment) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointment not found' });
+      return;
+    }
+
+    if (appointment.userId.toString() !== userId) {
+      res.status(403).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    if (appointment.payment) {
+      res.status(400).json({ success: false, message: 'Payment already made' });
+      return;
+    }
+
+    appointment.payment = true;
+    await appointment.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Payment verified successfully' });
   } catch (error) {
     next(error);
   }

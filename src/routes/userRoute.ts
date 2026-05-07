@@ -6,8 +6,10 @@ import {
   getAppointments,
   getUserInfo,
   loginUser,
+  makePayment,
   registerUser,
   updateUserInfo,
+  verifyPayment,
 } from '../controller/userController';
 import { verifyUserAccessToken } from '../middlewares/authUser';
 import { upload } from '../middlewares/multer';
@@ -36,3 +38,7 @@ userRouter.post(
   verifyUserAccessToken,
   cancelAppointment
 );
+
+userRouter.post('/make-payment', verifyUserAccessToken, makePayment);
+
+userRouter.post('/verify-payment', verifyUserAccessToken, verifyPayment);

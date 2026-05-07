@@ -1,6 +1,7 @@
 // Importing the required dependencies into the application
+import 'dotenv/config';
+
 import cors from 'cors';
-import { config } from 'dotenv';
 import express, { Request, Response } from 'express';
 
 import { connectCloudinary } from './config/cloudinary';
@@ -9,8 +10,6 @@ import { errorHandler } from './middlewares/errorMiddleware';
 import { adminRouter } from './routes/adminRoute';
 import { doctorRouter } from './routes/doctorRoute';
 import { userRouter } from './routes/userRoute';
-
-config();
 
 // Initializing the application
 const app = express();
