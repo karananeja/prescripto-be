@@ -128,7 +128,10 @@ export const getAppointments = async (
   next: NextFunction
 ) => {
   try {
-    const appointments = await appointmentModel.find().select('-__v');
+    const appointments = await appointmentModel
+      .find()
+      .select('-__v')
+      .sort({ date: -1 });
 
     res.status(200).json({
       success: true,

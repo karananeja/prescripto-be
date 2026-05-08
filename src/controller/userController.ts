@@ -60,7 +60,9 @@ export const loginUser = async (
     // Validate the user info
     userSchema.pick({ email: true, password: true }).partial().parse(req.body);
 
-    const userData = await userModel.findOne({ email: req.body.email });
+    const userData = await userModel
+      .findOne({ email: req.body.email })
+      .select('-__v');
     if (!userData) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
