@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
+import { appointmentModel } from '../models/appointmentModel';
 import { doctorModel } from '../models/doctorModel';
 import { doctorSchema } from '../utils/validationSchemas';
 
@@ -89,6 +90,58 @@ export const loginDoctor = async (
     res
       .status(200)
       .json({ success: true, message: 'Doctor logged in successfully', token });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDoctorInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const doctor = await doctorModel
+      .findById(req.body.doctorId)
+      .select(['-password', '-__v']);
+    if (!doctor) {
+      res.status(404).json({ success: false, message: 'Doctor not found' });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Doctor info fetched successfully',
+      doctor,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDoctorAppointments = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const appointments = await appointmentModel
+      .find({ docId: req.body.doctorId })
+      .select('-__v')
+      .sort({ date: -1 });
+
+    if (!appointments) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointments not found' });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Appointments fetched successfully',
+      appointments,
+    });
   } catch (error) {
     next(error);
   }
