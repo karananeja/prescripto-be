@@ -8,6 +8,7 @@ import {
   getDoctorAppointments,
   getDoctorInfo,
   loginDoctor,
+  updateDoctorInfo,
 } from '../controller/doctorController';
 import { verifyDoctorAccessToken } from '../middlewares/authDoctor';
 
@@ -18,6 +19,12 @@ doctorRouter.get('/get-all-doctors', getAllDoctors);
 doctorRouter.post('/login', loginDoctor);
 
 doctorRouter.get('/get-doctor-info', verifyDoctorAccessToken, getDoctorInfo);
+
+doctorRouter.put(
+  '/update-doctor-info',
+  verifyDoctorAccessToken,
+  updateDoctorInfo
+);
 
 doctorRouter.get(
   '/get-appointments',

@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
 import { appointmentModel } from '../models/appointmentModel';
 import { doctorModel } from '../models/doctorModel';
@@ -112,6 +113,50 @@ export const getDoctorInfo = async (
     res.status(200).json({
       success: true,
       message: 'Doctor info fetched successfully',
+      doctor,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDoctorInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Validate the doctor info
+    const parsedSchema = doctorSchema
+      .pick({ fee: true, address: true, available: true })
+      .partial()
+      .extend({
+        address: z.preprocess((val) => {
+          if (typeof val === 'string') return JSON.parse(val);
+          return val;
+        }, doctorSchema.shape.address),
+
+        fee: z.preprocess((val) => Number(val), z.number()),
+      });
+
+    const validatedData = parsedSchema.parse(req.body);
+
+    const doctor = await doctorModel
+      .findById(req.body.doctorId)
+      .select(['-password', '-__v']);
+    if (!doctor) {
+      res.status(404).json({ success: false, message: 'Doctor not found' });
+      return;
+    }
+
+    // Apply updates safely
+    Object.assign(doctor, validatedData);
+
+    await doctor.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Doctor info updated successfully',
       doctor,
     });
   } catch (error) {

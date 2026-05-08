@@ -142,7 +142,6 @@ export const updateUserInfo = async (
     const user = await userModel
       .findById(req.body.userId)
       .select(['-password', '-__v']);
-
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
