@@ -4,6 +4,7 @@ import {
   cancelAppointment,
   completeAppointment,
   getAllDoctors,
+  getDashboardData,
   getDoctorAppointments,
   getDoctorInfo,
   loginDoctor,
@@ -34,4 +35,10 @@ doctorRouter.post(
   '/cancel-appointment',
   verifyDoctorAccessToken,
   cancelAppointment
+);
+
+doctorRouter.get(
+  '/get-dashboard-data',
+  verifyDoctorAccessToken,
+  getDashboardData
 );

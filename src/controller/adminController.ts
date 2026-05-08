@@ -181,13 +181,14 @@ export const getDashboardData = async (
     const appointments = await appointmentModel
       .find()
       .select('-__v')
-      .sort({ date: -1 });
+      .sort({ date: -1 })
+      .limit(5);
 
     const dashboardData = {
       appointments: appointments.length,
       doctors: doctors.length,
       patients: users.length,
-      latestAppointments: appointments.slice(0, 5),
+      latestAppointments: appointments,
     };
 
     res.status(200).send({

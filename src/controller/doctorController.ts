@@ -223,3 +223,47 @@ export const cancelAppointment = async (
     next(error);
   }
 };
+
+export const getDashboardData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const appointments = await appointmentModel
+      .find({ docId: req.body.doctorId })
+      .select('-__v')
+      .sort({ date: -1 })
+      .limit(5);
+    if (!appointments) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointments not found' });
+      return;
+    }
+
+    let earnings = 0;
+    const uniquePatients = new Set();
+
+    appointments.forEach((appointment) => {
+      if (appointment.isCompleted || appointment.payment)
+        earnings += appointment.amount;
+      uniquePatients.add(appointment.userId.toString());
+    });
+
+    const dashboardData = {
+      earnings,
+      appointments: appointments.length,
+      patients: uniquePatients.size,
+      latestAppointments: appointments,
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Dashboard data fetched successfully',
+      dashboardData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
