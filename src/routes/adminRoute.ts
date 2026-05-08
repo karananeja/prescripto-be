@@ -5,6 +5,7 @@ import {
   cancelAppointment,
   getAllDoctors,
   getAppointments,
+  getDashboardData,
   loginAdmin,
 } from '../controller/adminController';
 import { changeAvailability } from '../controller/doctorController';
@@ -36,4 +37,10 @@ adminRouter.post(
   '/cancel-appointment',
   verifyAdminAccessToken,
   cancelAppointment
+);
+
+adminRouter.get(
+  '/get-dashboard-data',
+  verifyAdminAccessToken,
+  getDashboardData
 );

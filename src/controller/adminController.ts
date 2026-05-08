@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { appointmentModel } from '../models/appointmentModel';
 import { doctorModel } from '../models/doctorModel';
 import { adminSchema, doctorSchema } from '../utils/validationSchemas';
+import { userModel } from '../models/userModel';
 
 export const addDoctor = async (
   req: Request,
@@ -161,6 +162,36 @@ export const cancelAppointment = async (
     res
       .status(200)
       .json({ success: true, message: 'Appointment cancelled successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardData = async (
+  _: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const doctors = await doctorModel.find().select(['-password', '-__v']);
+    const users = await userModel.find().select(['-password', '-__v']);
+    const appointments = await appointmentModel
+      .find()
+      .select('-__v')
+      .sort({ date: -1 });
+
+    const dashboardData = {
+      appointments: appointments.length,
+      doctors: doctors.length,
+      patients: users.length,
+      latestAppointments: appointments.slice(0, 5),
+    };
+
+    res.status(200).send({
+      success: true,
+      message: 'Dashboard data fetched successfully',
+      dashboardData,
+    });
   } catch (error) {
     next(error);
   }
