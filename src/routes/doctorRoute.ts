@@ -1,6 +1,8 @@
 import { Router } from 'express';
 
 import {
+  cancelAppointment,
+  completeAppointment,
   getAllDoctors,
   getDoctorAppointments,
   getDoctorInfo,
@@ -17,7 +19,19 @@ doctorRouter.post('/login', loginDoctor);
 doctorRouter.get('/get-doctor-info', verifyDoctorAccessToken, getDoctorInfo);
 
 doctorRouter.get(
-  '/get-doctor-appointments',
+  '/get-appointments',
   verifyDoctorAccessToken,
   getDoctorAppointments
+);
+
+doctorRouter.post(
+  '/complete-appointment',
+  verifyDoctorAccessToken,
+  completeAppointment
+);
+
+doctorRouter.post(
+  '/cancel-appointment',
+  verifyDoctorAccessToken,
+  cancelAppointment
 );

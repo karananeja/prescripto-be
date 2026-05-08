@@ -129,7 +129,6 @@ export const getDoctorAppointments = async (
       .find({ docId: req.body.doctorId })
       .select('-__v')
       .sort({ date: -1 });
-
     if (!appointments) {
       res
         .status(404)
@@ -142,6 +141,84 @@ export const getDoctorAppointments = async (
       message: 'Appointments fetched successfully',
       appointments,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const completeAppointment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const appointment = await appointmentModel
+      .findById(req.body.appointmentId)
+      .select(['-__v']);
+    if (!appointment) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointment not found' });
+      return;
+    }
+
+    if (appointment.docId.toString() !== req.body.doctorId) {
+      res.status(403).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    if (appointment.isCompleted) {
+      res
+        .status(400)
+        .json({ success: false, message: 'Appointment already completed' });
+      return;
+    }
+
+    appointment.isCompleted = true;
+    await appointment.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Appointment completed successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const cancelAppointment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const appointment = await appointmentModel
+      .findById(req.body.appointmentId)
+      .select(['-__v']);
+    if (!appointment) {
+      res
+        .status(404)
+        .json({ success: false, message: 'Appointment not found' });
+      return;
+    }
+
+    if (appointment.docId.toString() !== req.body.doctorId) {
+      res.status(403).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    if (appointment.cancelled) {
+      res
+        .status(400)
+        .json({ success: false, message: 'Appointment already cancelled' });
+      return;
+    }
+
+    appointment.cancelled = true;
+    await appointment.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Appointment cancelled successfully' });
   } catch (error) {
     next(error);
   }
