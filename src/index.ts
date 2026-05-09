@@ -6,6 +6,7 @@ import express, { Request, Response } from 'express';
 
 import { connectCloudinary } from './config/cloudinary';
 import { connectDB } from './config/mongodb';
+import { dbMiddleware } from './middlewares/dbMiddleware';
 import { errorHandler } from './middlewares/errorMiddleware';
 import { adminRouter } from './routes/adminRoute';
 import { doctorRouter } from './routes/doctorRoute';
@@ -19,9 +20,9 @@ app.use(express.json());
 app.use(cors());
 
 // API endpoints
-app.use('/api/v1/admin', adminRouter);
-app.use('/api/v1/doctor', doctorRouter);
-app.use('/api/v1/user', userRouter);
+app.use('/api/v1/admin', dbMiddleware, adminRouter);
+app.use('/api/v1/doctor', dbMiddleware, doctorRouter);
+app.use('/api/v1/user', dbMiddleware, userRouter);
 
 // Setting up the port and database connection url
 const port = process.env.PORT || 3000;
